@@ -1,12 +1,21 @@
 package com.example.ncproject.add;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+
+import org.springframework.stereotype.Controller;
 import java.util.TimerTask;
 
+@Controller
 public class MyTh extends TimerTask {
+    private String placeId;
+
+    public void setPlaceId(String placeId){
+        this.placeId=placeId;
+    }
+
     @Override
     public void run() {
-        System.out.println("Task performed on " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")));
+        System.out.println("Запускаю отправку по сокетам");
+        MyWebSocketController.sendMessage(placeId);
     }
+
 }
