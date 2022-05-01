@@ -27,9 +27,8 @@ public class PlaceController {
         return gson.toJson(placesConfig);
     }
 
-   /* @GetMapping("/places/addPlace")
-    public void AddNewPlace(Model model) {
-
+    /*@GetMapping("/places/addPlace")
+    public void AddNewPlace() {
         Double [] masX = {0.0,105.0,0.0,105.0,300.0,300.0,300.0,300.0,520.0,400.0,460.0,0.0};
         Double [] masY = {0.0,0.0,55.0,55.0,20.0,100.0,180.0,260.0,120.0,0.0,60.0,300.0};
         String [] or = {"horisontal","horisontal","horisontal","horisontal",

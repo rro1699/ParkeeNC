@@ -4,6 +4,7 @@ import com.example.ncproject.Models.Reservation;
 import com.example.ncproject.Repository.ReservationRepository;
 import com.example.ncproject.add.MyTh;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,11 +17,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Timer;
+import java.util.concurrent.Semaphore;
 
 @RestController
 public class ReservationController {
 
     private ReservationRepository reservationRepository;
+    private final Semaphore semaphore = new Semaphore(1);;
 
     private ReservationController(ReservationRepository reservationRepository){
         this.reservationRepository = reservationRepository;
@@ -65,21 +68,28 @@ public class ReservationController {
 
 
     @PostMapping("/reservation/addReservation")
-    //userId placeId timeStart timeEnd
-    //@ResponseStatus(code = HttpStatus.CREATED)
-    public HttpStatus AddNewPlace(@RequestBody String reservation){
+    public ResponseEntity AddNewPlace(@RequestBody String reservation){
         Reservation reservationReturn = getResult(reservation);
-        HttpStatus status =null;
-        //блок синхронизации
-        if(reservationReturn!=null){
-            reservationRepository.save(reservationReturn);
-            status = HttpStatus.CREATED;
-            test(reservationReturn.getEndDateReser(),reservationReturn.getEndTimeReser());
+        ResponseEntity response = null;
+        try {
+            semaphore.acquire();
+            if (reservationReturn != null) {
+                //запрос к бд, не занято ли уже это время
+                reservationRepository.save(reservationReturn);
+                response = new ResponseEntity(HttpStatus.CREATED);
+                test(reservationReturn.getStartDateReser(),reservationReturn.getStartTimeReser(),String.valueOf(reservationReturn.getPlaceId()));
+                test(reservationReturn.getEndDateReser(), reservationReturn.getEndTimeReser(), String.valueOf(reservationReturn.getPlaceId()));
+            } else {
+                response = new ResponseEntity(HttpStatus.NOT_IMPLEMENTED);
+            }
+            semaphore.release();
+        } catch (InterruptedException e) {
+            response = new ResponseEntity(HttpStatus.BAD_REQUEST);
+            throw new RuntimeException();
         }
-        else{
-            status = HttpStatus.NOT_IMPLEMENTED;
+        finally {
+            return response;
         }
-        return status;
     }
 
     private Reservation getResult(String reservation){
@@ -106,11 +116,21 @@ public class ReservationController {
     }
 
 
-    public void test(Date endData, Time endTime){
-            System.out.println("cur: = "+LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")));
-            LocalDateTime  endDateTime = LocalDateTime.of(endData.toLocalDate(),endTime.toLocalTime());
-            long delay  = Duration.between(LocalDateTime.now(),endDateTime).toMillis();
-            new Timer().schedule(new MyTh(), delay);
+    private void test(Date endData, Time endTime, String placeId){
+        LocalDateTime  endDateTime = LocalDateTime.of(endData.toLocalDate(),endTime.toLocalTime());
+        long delay  = Duration.between(LocalDateTime.now(),endDateTime).abs().toMillis();
+        System.out.println(delay);
+        MyTh th = new MyTh();
+        th.setPlaceId(placeId);
+        new Timer().schedule(th, delay);
     }
+
+    /*private void test(String placeId){
+        System.out.println(LocalDateTime.now()+"  запуск таски на смену цвета места брони "+placeId);
+        MyTh th = new MyTh();
+        th.setPlaceId(placeId);
+        new Timer().schedule(th, 0);
+    }*/
+
 
 }

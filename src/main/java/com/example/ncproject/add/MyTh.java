@@ -1,10 +1,8 @@
 package com.example.ncproject.add;
 
 
-import org.springframework.stereotype.Controller;
 import java.util.TimerTask;
 
-@Controller
 public class MyTh extends TimerTask {
     private String placeId;
 
