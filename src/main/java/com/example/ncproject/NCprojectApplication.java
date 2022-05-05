@@ -1,9 +1,8 @@
 package com.example.ncproject;
 
+import com.example.ncproject.add.TokenVerifier;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
 import java.util.Collections;
 

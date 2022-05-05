@@ -16,7 +16,7 @@ public class PlaceController {
 
     private PlaceRepository placeRepository;
 
-    private PlaceController(PlaceRepository placeRepository){
+    public PlaceController(PlaceRepository placeRepository){
         this.placeRepository = placeRepository;
     }
 

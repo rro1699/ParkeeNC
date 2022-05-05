@@ -3,12 +3,12 @@ package com.example.ncproject.Controllers;
 import com.example.ncproject.Models.Reservation;
 import com.example.ncproject.Repository.ReservationRepository;
 import com.example.ncproject.add.MyTh;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Date;
 import java.sql.Time;
 import java.time.Duration;
@@ -16,6 +16,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.concurrent.Semaphore;
 
@@ -25,56 +27,27 @@ public class ReservationController {
     private ReservationRepository reservationRepository;
     private final Semaphore semaphore = new Semaphore(1);;
 
-    private ReservationController(ReservationRepository reservationRepository){
+    public ReservationController(ReservationRepository reservationRepository){
         this.reservationRepository = reservationRepository;
     }
 
 
-   /* @GetMapping("/reservation/add")
-    public void addRes(){
-        List<Reservation> list = new ArrayList<>();
-        Date date  = Date.valueOf(LocalDate.of(2022,4,26));
-        Time time;
-        Time time1;
-        int UserId;
-        int PlaceId;
-        for(int i=0;i<23;i++){
-            time = Time.valueOf(LocalTime.of(i,00,00));
-            time1 = Time.valueOf(LocalTime.of(i,15,00));;
-            UserId = (int)Math.round((Math.random()+1)*5);
-            PlaceId = (int)Math.round((Math.random()+1)*5);
-            list.add(new Reservation(UserId,PlaceId,date,time,date,time1));
-        }
-        Collections.shuffle(list);
-        for(Reservation s : list)
-            reservationRepository.save(s);
-    }*/
+
     //SELECT * FROM reservation WHERE placeid=9 ORDER BY endtimereser DESC LIMIT 2;
 
-   /* @GetMapping("/reservation/info")
-    public String ReservationInfo(Model model){
-        Iterable<Reservation> places = reservationRepository.findAll();
-        places.forEach(i->{
-            System.out.println(i.getReservationid()+"- "+i.getUserId()+" - "+i.getPlaceId());
-        });
-        System.out.println("---------");
-        return "redirect:/";
-    }*/
+    @PostMapping(path= "/reservation/addReservation")
+    public ResponseEntity AddNewPlace( @RequestHeader HttpHeaders headers, @RequestBody String reservation){
+        //cookie user
 
-   /* @GetMapping("/reservation/addReservation")
-    public String AddNewPlace(Model model){
-        return "addReservation";
-    }*/
-
-
-    @PostMapping("/reservation/addReservation")
-    public ResponseEntity AddNewPlace(@RequestBody String reservation){
+        String userId = getUserId(headers.get("cookie"));
+        System.out.println(userId);
         Reservation reservationReturn = getResult(reservation);
         ResponseEntity response = null;
         try {
             semaphore.acquire();
             if (reservationReturn != null) {
                 //запрос к бд, не занято ли уже это время
+                reservationReturn.setUserId(userId);
                 reservationRepository.save(reservationReturn);
                 response = new ResponseEntity(HttpStatus.CREATED);
                 test(reservationReturn.getStartDateReser(),reservationReturn.getStartTimeReser(),String.valueOf(reservationReturn.getPlaceId()));
@@ -92,6 +65,20 @@ public class ReservationController {
         }
     }
 
+
+
+    private String getUserId(List<String> cookies){
+        String[] names = cookies.get(0).split(";");
+        String a=null;
+        for(int i=0;i<names.length;i++)
+        {
+               if("user-id".equals(names[i].split("=")[0].trim())){
+                 a = names[i].split("=")[1];
+               }
+        }
+        return a;
+    }
+
     private Reservation getResult(String reservation){
         Reservation reservationReturn = null;
         reservation = reservation.replaceAll("[[\\{][\\}][\"]]", "");
@@ -102,7 +89,7 @@ public class ReservationController {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-M-d");
         DateTimeFormatter secondFormatter = DateTimeFormatter.ofPattern("H:m");
         try{
-            reservationReturn = new Reservation(Integer.parseInt(arrayStr[0]),
+            reservationReturn = new Reservation(arrayStr[0],
                     Integer.parseInt(arrayStr[1]),
                     Date.valueOf(LocalDate.parse(arrayStr[2], formatter)),
                     Time.valueOf(LocalTime.parse(arrayStr[3], secondFormatter)),
@@ -124,13 +111,4 @@ public class ReservationController {
         th.setPlaceId(placeId);
         new Timer().schedule(th, delay);
     }
-
-    /*private void test(String placeId){
-        System.out.println(LocalDateTime.now()+"  запуск таски на смену цвета места брони "+placeId);
-        MyTh th = new MyTh();
-        th.setPlaceId(placeId);
-        new Timer().schedule(th, 0);
-    }*/
-
-
 }

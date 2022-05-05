@@ -16,7 +16,7 @@ public class Reservation {
     private Integer reservationId;
 
     @Column(name="userid")
-    private Integer UserId;
+    private String UserId;
 
     @Column(name="placeid")
     private Integer PlaceId;
@@ -33,7 +33,7 @@ public class Reservation {
     @Column(name = "endtimereser")
     private Time endTimeReser;
 
-    public Reservation(Integer userId, Integer placeId, Date startDateReser,
+    public Reservation(String userId, Integer placeId, Date startDateReser,
                        Time startTimeReser, Date endDateReser, Time endTimeReser) {
         UserId = userId;
         PlaceId = placeId;
