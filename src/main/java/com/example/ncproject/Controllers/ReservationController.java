@@ -2,9 +2,11 @@ package com.example.ncproject.Controllers;
 
 import com.example.ncproject.Models.Reservation;
 import com.example.ncproject.Repository.ReservationRepository;
+import com.example.ncproject.add.DeleteInfo;
 import com.example.ncproject.add.MyTh;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +30,7 @@ public class ReservationController {
 
     private ReservationRepository reservationRepository;
     private final Semaphore semaphore = new Semaphore(1);
-    private Multimap<Integer,Timer> timers= ArrayListMultimap.create();
+    private Multimap<String,Timer> timers= ArrayListMultimap.create();
 
 
     public ReservationController(ReservationRepository reservationRepository){
@@ -50,14 +52,11 @@ public class ReservationController {
 
     }
 
-
-
-
     @PostMapping(path= "/reservation/addReservation")
     public ResponseEntity AddNewPlace( @RequestHeader HttpHeaders headers, @RequestBody String reservation){
         String userId = getUserId(headers.get("cookie"));
         System.out.println(userId);
-        Reservation reservationReturn = getResult(reservation);
+        Reservation reservationReturn = getReservation(reservation);
         ResponseEntity response = null;
         Integer ReserId = null;
         try {
@@ -84,21 +83,31 @@ public class ReservationController {
     }
 
 
-
-    @GetMapping("res/delete")
-    public void deleteAllReservations(){
-        System.out.println(timers.size());
-        Set<Integer> keys = timers.keySet();
-        Iterator<Integer> iterator = keys.iterator();
-        Integer val;
-        Iterator<Timer> iterator1;
-        while(iterator.hasNext()){
-            val = iterator.next();
-            iterator1 = timers.get(val).iterator();
-            while (iterator1.hasNext()){
-                iterator1.next().cancel();
-            }
+    @DeleteMapping("/reservation/delete")
+    public ResponseEntity deleteCurResevation(@RequestBody String values){
+        DeleteInfo info = getDeleteInfo(values);
+        Iterator<Timer> iterator = timers.get(info.getReservationId()).iterator();
+        boolean flag = true;
+        if(Time.valueOf(info.getStartTimeReser()).after(Time.valueOf(LocalTime.now())))
+            flag = false;
+        while (iterator.hasNext()){
+            iterator.next().cancel();
         }
+        timers.removeAll(info.getReservationId());
+        reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
+        if(flag) {
+            MyTh th = new MyTh();
+            th.setPlaceId(info.getPlaceId());
+            new Timer().schedule(th, 0);
+        }
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+
+
+    private DeleteInfo getDeleteInfo(String values){
+        Gson gson = new Gson();
+        return gson.fromJson(values,DeleteInfo.class);
     }
 
     private List<Reservation> getCurAndFuture(Collection<Reservation> reservations){
@@ -137,7 +146,7 @@ public class ReservationController {
         return a;
     }
 
-    private Reservation getResult(String reservation){
+    private Reservation getReservation(String reservation){
         Reservation reservationReturn = null;
         reservation = reservation.replaceAll("[[\\{][\\}][\"]]", "");
         String[] arrayStr = reservation.split(",");
@@ -168,8 +177,6 @@ public class ReservationController {
         th.setPlaceId(placeId);
         Timer timer = new Timer();
         timer.schedule(th, delay);
-        timers.put(resId,timer);
-        System.out.println(timers.size());
-        //для отмены нужен idResevation
+        timers.put(String.valueOf(resId),timer);
     }
 }
