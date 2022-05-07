@@ -43,6 +43,7 @@ public class Reservation {
         this.endTimeReser = endTimeReser;
     }
 
+
     @Override
     public String toString() {
         return "Reservation{" +
@@ -56,6 +57,5 @@ public class Reservation {
     }
 
     public Reservation() {
-
     }
 }

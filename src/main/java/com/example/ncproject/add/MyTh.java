@@ -1,6 +1,5 @@
 package com.example.ncproject.add;
 
-
 import java.util.TimerTask;
 
 public class MyTh extends TimerTask {
@@ -15,5 +14,4 @@ public class MyTh extends TimerTask {
         System.out.println("Запускаю отправку по сокетам");
         MyWebSocketController.sendMessage(placeId);
     }
-
 }
