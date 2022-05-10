@@ -1,4 +1,4 @@
-package com.example.ncproject.add;
+package com.example.ncproject.WebSockets;
 
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;

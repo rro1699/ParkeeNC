@@ -1,6 +1,6 @@
-package com.example.ncproject.add;
+package com.example.ncproject.Services.ServiceUtils;
 
-import com.example.ncproject.Models.User;
+import com.example.ncproject.DAO.Models.User;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;

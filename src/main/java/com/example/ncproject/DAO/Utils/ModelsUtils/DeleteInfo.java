@@ -1,4 +1,4 @@
-package com.example.ncproject.add;
+package com.example.ncproject.DAO.Utils.ModelsUtils;
 
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package com.example.ncproject.Models;
+package com.example.ncproject.DAO.Models;
 
 import lombok.Data;
 

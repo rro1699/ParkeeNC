@@ -1,4 +1,4 @@
-package com.example.ncproject.Models;
+package com.example.ncproject.DAO.Models;
 
 
 import lombok.Data;
@@ -25,8 +25,6 @@ public class Places {
 
     @Column(name = "parkingid")
     private Integer parkingId;
-
-
 
     public Places(Double xCoor, Double yCoor, String orient, Integer parkingId) {
         this.xCoor = xCoor;

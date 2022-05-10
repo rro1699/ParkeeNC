@@ -1,4 +1,4 @@
-package com.example.ncproject.add;
+package com.example.ncproject.WebSockets;
 
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -16,7 +16,7 @@ public class MyWebSocketController {
     public void addNewUser(WebSocketSession socketSession){
         System.out.println("added new user = "+socketSession.getId());
         sessions.add(socketSession);
-        sendCurPlace(socketSession);
+        sendCurPlaces(socketSession);
     }
 
     public void removeUser(WebSocketSession socketSession){
@@ -24,7 +24,7 @@ public class MyWebSocketController {
         sessions.remove(socketSession);
     }
 
-    private static void sendCurPlace(WebSocketSession socketSession){
+    private static void sendCurPlaces(WebSocketSession socketSession){
         for(Map.Entry<String,Boolean> entry:map.entrySet()){
             if(entry.getValue()==false) {
                 try {

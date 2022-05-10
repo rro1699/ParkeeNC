@@ -1,7 +1,7 @@
 package com.example.ncproject.config;
 
 
-import com.example.ncproject.add.MyTextWebSocketHandler;
+import com.example.ncproject.WebSockets.MyTextWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

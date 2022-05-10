@@ -1,8 +1,10 @@
-package com.example.ncproject.add;
+package com.example.ncproject.Services.ServiceUtils;
+
+import com.example.ncproject.WebSockets.MyWebSocketController;
 
 import java.util.TimerTask;
 
-public class MyTh extends TimerTask {
+public class MyTimerTask extends TimerTask {
     private String placeId;
 
     public void setPlaceId(String placeId){

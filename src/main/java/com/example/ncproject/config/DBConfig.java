@@ -20,7 +20,7 @@ import java.util.Properties;
 @Configuration
 @EnableTransactionManagement
 @ComponentScan(basePackages = {"com.example.ncproject"})
-@EnableJpaRepositories(basePackages = {"com.example.ncproject.Repository"})
+@EnableJpaRepositories(basePackages = {"com.example.ncproject.DAO.Repository"})
 public class DBConfig {
     @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(){
