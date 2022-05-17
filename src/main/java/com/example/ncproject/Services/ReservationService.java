@@ -1,7 +1,10 @@
 package com.example.ncproject.Services;
 
+import com.example.ncproject.DAO.Models.Parking;
 import com.example.ncproject.DAO.Models.Reservation;
 import com.example.ncproject.DAO.Repository.ReservationRepository;
+import com.example.ncproject.DAO.Repository.TariffRepository;
+import com.example.ncproject.DAO.Utils.ModelsUtils.Hours;
 import com.example.ncproject.Services.ServiceUtils.MyTimerTask;
 import com.example.ncproject.DAO.Utils.ModelsUtils.DeleteInfo;
 import com.google.common.collect.ArrayListMultimap;
@@ -26,11 +29,13 @@ import java.util.stream.Stream;
 @Service
 public class ReservationService {
     private ReservationRepository reservationRepository;
+    private TariffRepository tariffRepository;
     private final Semaphore semaphore = new Semaphore(1);
     private Multimap<String, Timer> timers= ArrayListMultimap.create();
 
-    public ReservationService(ReservationRepository reservationRepository) {
+    public ReservationService(ReservationRepository reservationRepository, TariffRepository tariffRepository) {
         this.reservationRepository = reservationRepository;
+        this.tariffRepository = tariffRepository;
     }
 
 
@@ -177,20 +182,30 @@ public class ReservationService {
         if(!"".equals(values)) {
             DeleteInfo info = getDeleteInfo(values);
             Iterator<Timer> iterator = timers.get(info.getReservationId()).iterator();
-            boolean flag = true;
-            if (Time.valueOf(info.getStartTimeReser()).after(Time.valueOf(LocalTime.now())))
-                flag = false;
+
             while (iterator.hasNext()) {
                 iterator.next().cancel();
             }
             timers.removeAll(info.getReservationId());
-            reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
-            if (flag) {
-                MyTimerTask th = new MyTimerTask();
-                th.setPlaceId(info.getPlaceId());
-                new Timer().schedule(th, 0);
+            LocalTime nowTime = LocalTime.now();
+            if(Time.valueOf(info.getStartTimeReser()).after(Time.valueOf(nowTime))){
+                reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
+                return ResponseEntity.status(HttpStatus.OK).build();
+            } else {
+                Optional<Reservation> reservation = reservationRepository.findById(Integer.parseInt(info.getReservationId()));
+                if(reservation.isPresent()){
+                    reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
+                    reservation.get().setEndTimeReser(Time.valueOf(nowTime));
+                    reservationRepository.save(reservation.get());
+                    MyTimerTask th = new MyTimerTask();
+                    th.setPlaceId(info.getPlaceId());
+                    new Timer().schedule(th, 0);
+                    return ResponseEntity.status(HttpStatus.OK).build();
+                }
+                else{
+                    return ResponseEntity.badRequest().build();
+                }
             }
-            return ResponseEntity.status(HttpStatus.OK).build();
         }
         else{
             return ResponseEntity.badRequest().build();
@@ -199,5 +214,18 @@ public class ReservationService {
     private DeleteInfo getDeleteInfo(String values){
         Gson gson = new Gson();
         return gson.fromJson(values,DeleteInfo.class);
+    }
+
+    private double getCoast(Reservation reservation){
+
+        Time timeReservation = new Time(reservation.getEndTimeReser().getTime() - reservation.getStartTimeReser().getTime());
+        Gson gson = new Gson();
+        Optional<Parking> tariff = tariffRepository.findById(1);
+        if(tariff.isPresent()){
+            Hours hours = gson.fromJson(tariff.get().getTariffplan(), Hours.class);
+        }
+        int tariffplan = 300;
+        double coast = tariffplan * (timeReservation.getTime()/3600000);
+        return coast;
     }
 }

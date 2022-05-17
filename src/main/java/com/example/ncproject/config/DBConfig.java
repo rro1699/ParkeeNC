@@ -38,9 +38,9 @@ public class DBConfig {
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://eu-cdbr-west-02.cleardb.net:3306/heroku_98f7f5659d1c982");
-        dataSource.setUsername("b23afd8cf01805");
-        dataSource.setPassword("e0517103");
+        dataSource.setUrl("jdbc:mysql://us-cdbr-east-05.cleardb.net:3306/heroku_9eefee6a0d3dfba");
+        dataSource.setUsername("b6025539399a55");
+        dataSource.setPassword("ac355c23");
         return dataSource;
     }
 
@@ -48,7 +48,7 @@ public class DBConfig {
     public Properties additionalProperties() {
         Properties properties = new Properties();
         properties.setProperty("hibernate.dialect","org.hibernate.dialect.MySQL55Dialect");
-        properties.setProperty("hibernate.default_schema","heroku_98f7f5659d1c982");
+        properties.setProperty("hibernate.default_schema","heroku_9eefee6a0d3dfba");
         properties.setProperty("hibernate.hbm2ddl.auto", "update");
         properties.setProperty("hibernate.show_sql", "true");
         properties.setProperty("hibernate.format_sql", "true");
