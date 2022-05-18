@@ -13,7 +13,6 @@ public class MyTimerTask extends TimerTask {
 
     @Override
     public void run() {
-        System.out.println("Запускаю отправку по сокетам");
         MyWebSocketController.sendMessage(placeId);
     }
 }

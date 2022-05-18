@@ -12,14 +12,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
     private UserRepository userRepository;
+    private TokenVerifier tokenVerifier;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, TokenVerifier tokenVerifier) {
         this.userRepository = userRepository;
-        TokenVerifier.Init();
+        this.tokenVerifier = tokenVerifier;
     }
 
     public ResponseEntity addNewUser(String idToken){
-        User user = TokenVerifier.getNewUser(idToken);
+        User user = tokenVerifier.getNewUser(idToken);
         if(user!=null){
             userRepository.save(user);
             ResponseCookie cookie = ResponseCookie.from("user-id", user.getId()).path("/").build();

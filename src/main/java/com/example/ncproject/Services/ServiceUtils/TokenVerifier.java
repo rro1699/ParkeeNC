@@ -15,11 +15,15 @@ import java.util.Collections;
 
 public class TokenVerifier {
 
-    private static final String CLIENT_ID = "375617435757-oapk0ruihfafpn85e93jv96envuhm5uc.apps.googleusercontent.com";
+    private String CLIENT_ID;
     private static HttpTransport transport;
     private static JsonFactory jsonFactory;
 
-    public static void Init(){
+    public TokenVerifier(String CLIENT_ID) {
+        this.CLIENT_ID=CLIENT_ID;
+    }
+
+    public void Init(){
         try {
             transport = GoogleNetHttpTransport.newTrustedTransport();
             jsonFactory = GsonFactory.getDefaultInstance();
@@ -30,7 +34,7 @@ public class TokenVerifier {
         }
     }
 
-    public static User getNewUser(String idTokenString){
+    public User getNewUser(String idTokenString){
         try {
             GoogleIdToken idToken =tokenCheck(idTokenString);
             if(idToken!=null){
@@ -50,7 +54,7 @@ public class TokenVerifier {
     }
 
 
-    private static GoogleIdToken tokenCheck(String idTokenString) throws GeneralSecurityException, IOException {
+    private GoogleIdToken tokenCheck(String idTokenString) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(CLIENT_ID))
                 .build();

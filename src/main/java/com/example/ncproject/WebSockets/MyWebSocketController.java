@@ -13,6 +13,7 @@ public class MyWebSocketController {
     private static final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
     private static final Map<String,Boolean> map = new HashMap<>();
 
+
     public void addNewUser(WebSocketSession socketSession){
         System.out.println("added new user = "+socketSession.getId());
         sessions.add(socketSession);
@@ -34,7 +35,6 @@ public class MyWebSocketController {
                 }
             }
         }
-        System.out.println("-------------");
     }
 
     public static void sendMessage(String placeId){

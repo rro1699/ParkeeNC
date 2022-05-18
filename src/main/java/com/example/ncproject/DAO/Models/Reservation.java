@@ -43,6 +43,16 @@ public class Reservation {
         this.endTimeReser = endTimeReser;
     }
 
+    public Reservation(Reservation reservation){
+        reservationId = reservation.getReservationId();
+        UserId = reservation.getUserId();
+        PlaceId = reservation.getPlaceId();
+        this.startDateReser = reservation.getStartDateReser();
+        this.startTimeReser = reservation.getStartTimeReser();
+        this.endDateReser = reservation.getEndDateReser();
+        this.endTimeReser = reservation.getEndTimeReser();
+    }
+
 
     @Override
     public String toString() {
