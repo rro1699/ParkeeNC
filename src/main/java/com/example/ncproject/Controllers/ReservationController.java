@@ -24,7 +24,7 @@ public class ReservationController {
     }
 
     @PostMapping(path= "/reservation/addReservation")
-    public ResponseEntity AddNewPlace( @RequestHeader HttpHeaders headers, @RequestBody String reservation){
+    public ResponseEntity addNewPlace( @RequestHeader HttpHeaders headers, @RequestBody String reservation){
         return reservationService.addNewReservation(headers.get("cookie"),reservation);
     }
 

@@ -33,11 +33,13 @@ public class ReservationService {
     private TariffRepository tariffRepository;
     private final Semaphore semaphore = new Semaphore(1);
     private Multimap<String, Timer> timers= ArrayListMultimap.create();
+    private final Optional<Parking> tariff;
     private String REGEXP_ALL_SLASHES = "[[\\{][\\}][\"]]";
 
-    public ReservationService(ReservationRepository reservationRepository, TariffRepository tariffRepository) {
+    public ReservationService(ReservationRepository reservationRepository, TariffRepository tariffRepository, Optional<Parking> tariff) {
         this.reservationRepository = reservationRepository;
         this.tariffRepository = tariffRepository;
+        this.tariff = tariffRepository.findById(1);
     }
 
 
@@ -54,7 +56,6 @@ public class ReservationService {
                 collision = reservationIntersection(reservation);
                 if(collision==null) {
                     ReserId = reservationRepository.save(reservation).getReservationId();
-                    System.out.println(ReserId);
                     response = ResponseEntity.status(HttpStatus.CREATED).build();
                     addNewTask(reservation.getStartDateReser(), reservation.getStartTimeReser(), String.valueOf(reservation.getPlaceId()), ReserId);
                     addNewTask(reservation.getEndDateReser(), reservation.getEndTimeReser(), String.valueOf(reservation.getPlaceId()), ReserId);
@@ -120,6 +121,7 @@ public class ReservationService {
             return result.get(0);
         }
     }
+
     private void addNewTask(Date endData, Time endTime, String placeId, Integer resId){
         LocalDateTime endDateTime = LocalDateTime.of(endData.toLocalDate(),endTime.toLocalTime());
         long delay  = Duration.between(LocalDateTime.now(),endDateTime).abs().toMillis();
@@ -144,12 +146,8 @@ public class ReservationService {
     private List<ReservationWithCoast> getCurAndFuture(Collection<Reservation> reservations){
         Date nowDate = Date.valueOf(LocalDate.now());
         Time nowTime = Time.valueOf(LocalTime.now());
-        Stream<Reservation> reservationStream =  reservations.stream().filter(o->{
-            if((o.getEndDateReser().after(nowDate)) || (o.getEndDateReser().equals(nowDate) && o.getEndTimeReser().after(nowTime)))
-                return true;
-            else
-                return false;
-        });
+        Stream<Reservation> reservationStream =  reservations.stream().filter(o->
+                ((o.getEndDateReser().after(nowDate)) || (o.getEndDateReser().equals(nowDate) && o.getEndTimeReser().after(nowTime))));
         return addedCoast(reservationStream.collect(Collectors.toList()));
 
     }
@@ -168,12 +166,8 @@ public class ReservationService {
     private List<ReservationWithCoast> getLast15(Collection<Reservation> reservations){
         Date nowDate = Date.valueOf(LocalDate.now());
         Time nowTime = Time.valueOf(LocalTime.now());
-        Stream<Reservation> reservationStream = reservations.stream().filter(o->{
-            if(o.getEndDateReser().equals(nowDate) && o.getEndTimeReser().after(nowTime))
-                return false;
-            else
-                return true;
-        });
+        Stream<Reservation> reservationStream = reservations.stream().filter(o->
+            !(o.getEndDateReser().equals(nowDate) && o.getEndTimeReser().after(nowTime)));
         return addedCoast(reservationStream.limit(15).collect(Collectors.toList()));
 
     }
@@ -187,6 +181,16 @@ public class ReservationService {
     }
 
 
+    public List<String> getCurrentReservation(){
+        Date nowDate = Date.valueOf(LocalDate.now());
+        Time nowTime = Time.valueOf(LocalTime.now());
+        Collection<Reservation> reservations = reservationRepository.findAllCurrent(nowDate,nowTime);
+        List<String> placeIdList = new ArrayList<>();
+        reservations.forEach(o->{
+            placeIdList.add(String.valueOf(o.getPlaceId()));
+        });
+        return placeIdList;
+    }
 
     public ResponseEntity deleteCurResevation(String values){
         if(!"".equals(values)) {
@@ -227,9 +231,28 @@ public class ReservationService {
     }
 
     private double getCoast(Reservation reservation){
-        Time timeReservation = new Time(reservation.getEndTimeReser().getTime() - reservation.getStartTimeReser().getTime());
-        int tariffplan = 300;
-        double coast = tariffplan * (timeReservation.getTime()/3600000+1);
-        return coast;
+            long qq = Duration.between(reservation.getEndTimeReser().toLocalTime(),reservation.getStartTimeReser().toLocalTime()).abs().toHours()+1;
+            Gson gson = new Gson();
+            double coast=0.0;
+            if(tariff.isPresent()){
+                Hours hours = gson.fromJson(tariff.get().getTariffplan(), Hours.class);
+                Iterator<String> iterator = hours.getPrices().keySet().iterator();
+                int position =-1;
+                Time start;
+                while (iterator.hasNext()){
+                    start = Time.valueOf(LocalTime.of(Integer.valueOf(iterator.next()),0));
+                    if(start.after(reservation.getStartTimeReser())){
+                        break;
+                    }
+                    position++;
+                }
+                List<Integer> prices =  hours.getPrices().values().stream().collect(Collectors.toList());
+                for(int i=position;i<position+qq;i++){
+                    coast += prices.get(i);
+                }
+            }
+            return coast;
     }
+
+
 }

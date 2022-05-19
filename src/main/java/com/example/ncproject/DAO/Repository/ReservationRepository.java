@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.Collection;
 
 public interface ReservationRepository extends JpaRepository<Reservation,Integer> {
@@ -16,4 +17,7 @@ public interface ReservationRepository extends JpaRepository<Reservation,Integer
 
         @Query("SELECT e FROM Reservation e WHERE e.UserId = (:userId) AND e.endDateReser <= (:curDate) ORDER BY e.endDateReser DESC, e.startTimeReser")
         Collection<Reservation> findAllEnded(String userId, Date curDate);
+
+        @Query("SELECT e FROM Reservation e WHERE (e.startDateReser=(:curDate)) and (e.startTimeReser<=(:curTime)) and (e.endTimeReser>(:curTime)) ORDER BY e.startTimeReser")
+        Collection<Reservation> findAllCurrent(Date curDate, Time curTime);
 }

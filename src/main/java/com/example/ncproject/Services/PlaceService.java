@@ -18,7 +18,6 @@ public class PlaceService {
     public ResponseEntity getPlacesInfo(){
         List<Places> places = placeRepository.findAll();
         if(!places.isEmpty()){
-            System.out.println(places.size());
             return ResponseEntity.ok(places);
         }else{
             return ResponseEntity.badRequest().build();

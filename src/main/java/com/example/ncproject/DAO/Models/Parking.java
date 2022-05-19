@@ -10,7 +10,7 @@ import javax.persistence.Id;
 @Data
 public class Parking {
     @Id
-    @Column(name = "parckingid")
+    @Column(name = "parkingid")
     private Integer parkingId;
 
     private String tariffplan;

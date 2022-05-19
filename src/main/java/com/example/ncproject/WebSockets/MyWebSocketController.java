@@ -1,5 +1,6 @@
 package com.example.ncproject.WebSockets;
 
+import com.example.ncproject.Services.ReservationService;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -12,7 +13,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class MyWebSocketController {
     private static final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
     private static final Map<String,Boolean> map = new HashMap<>();
+    private ReservationService reservationService;
 
+    public MyWebSocketController(ReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
+
+    public MyWebSocketController() {
+    }
+
+    public void Init(){
+        reservationService.getCurrentReservation().forEach(o->{
+            if(!map.containsKey(o)){
+                map.put(o,false);
+            }
+            else{
+                map.replace(o,!map.get(o));
+            }
+        });
+    }
 
     public void addNewUser(WebSocketSession socketSession){
         System.out.println("added new user = "+socketSession.getId());
@@ -37,7 +56,7 @@ public class MyWebSocketController {
         }
     }
 
-    public static void sendMessage(String placeId){
+    public synchronized static void sendMessage(String placeId){
         if(!map.containsKey(placeId)){
             map.put(placeId,false);
         }
