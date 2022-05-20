@@ -196,7 +196,7 @@ public class ReservationService {
         return placeIdList;
     }
 
-    public ResponseEntity deleteCurResevation(String values){
+    public ResponseEntity deleteCurResevation(String values)  {
         if(!"".equals(values)) {
             DeleteInfo info = getDeleteInfo(values);
             Iterator<Timer> iterator = timers.get(info.getReservationId()).iterator();
@@ -205,24 +205,23 @@ public class ReservationService {
                 iterator.next().cancel();
             }
             timers.removeAll(info.getReservationId());
-            LocalTime nowTime = LocalTime.now();
-            if(Time.valueOf(info.getStartTimeReser()).after(Time.valueOf(nowTime))){
-                reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
-                return ResponseEntity.status(HttpStatus.OK).build();
-            } else {
-                Optional<Reservation> reservation = reservationRepository.findById(Integer.parseInt(info.getReservationId()));
-                if(reservation.isPresent()){
+            Time nowTime = Time.valueOf(LocalTime.now());
+            Date nowDate = Date.valueOf(LocalDate.now());
+            Optional<Reservation> reservation = reservationRepository.findById(Integer.parseInt(info.getReservationId()));
+            if (reservation.isPresent()){
+                if(Time.valueOf(info.getStartTimeReser()).after(nowTime) || reservation.get().getStartDateReser().after(nowDate)){
                     reservationRepository.deleteById(Integer.parseInt(info.getReservationId()));
-                    reservation.get().setEndTimeReser(Time.valueOf(nowTime));
-                    reservationRepository.save(reservation.get());
-                    MyTimerTask th = new MyTimerTask();
-                    th.setPlaceId(info.getPlaceId());
-                    new Timer().schedule(th, 0);
-                    return ResponseEntity.status(HttpStatus.OK).build();
+                } else {
+                        reservation.get().setEndTimeReser(nowTime);
+                        reservationRepository.save(reservation.get());
+                        MyTimerTask th = new MyTimerTask();
+                        th.setPlaceId(info.getPlaceId());
+                        new Timer().schedule(th, 0);
                 }
-                else{
-                    return ResponseEntity.badRequest().build();
-                }
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+            else{
+                return ResponseEntity.badRequest().build();
             }
         }
         else{
