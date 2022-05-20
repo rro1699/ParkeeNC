@@ -1,6 +1,9 @@
 package com.example.ncproject.WebSockets;
 
 import com.example.ncproject.Services.ReservationService;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -10,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@Slf4j
 public class MyWebSocketController {
     private static final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
     private static final Map<String,Boolean> map = new HashMap<>();
@@ -34,13 +38,13 @@ public class MyWebSocketController {
     }
 
     public void addNewUser(WebSocketSession socketSession){
-        System.out.println("added new user = "+socketSession.getId());
+        log.info("added new user = "+socketSession.getId());
         sessions.add(socketSession);
         sendCurPlaces(socketSession);
     }
 
     public void removeUser(WebSocketSession socketSession){
-        System.out.println("delete user = "+socketSession.getId());
+        log.info("delete user = "+socketSession.getId());
         sessions.remove(socketSession);
     }
 
@@ -48,8 +52,10 @@ public class MyWebSocketController {
         for(Map.Entry<String,Boolean> entry:map.entrySet()){
             if(entry.getValue()==false) {
                 try {
+                    log.info("send message to = "+entry.getKey());
                     socketSession.sendMessage(new TextMessage(entry.getKey()));
                 } catch (IOException e) {
+                    log.error("sendCurPlaces error!");
                     e.printStackTrace();
                 }
             }
@@ -65,10 +71,11 @@ public class MyWebSocketController {
         }
         sessions.forEach(session -> {
             try {
-                System.out.println("send message to = "+session.getId());
+                log.info("send message to = "+session.getId());
                 session.sendMessage(new TextMessage(placeId));
             } catch (IOException e) {
-                System.out.println("Couldn't send message");
+                log.error("Couldn't send message");
+                e.printStackTrace();
             }
         });
     }

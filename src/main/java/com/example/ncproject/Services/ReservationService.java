@@ -11,6 +11,7 @@ import com.example.ncproject.Services.ServiceUtils.ReservationWithCoast;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 public class ReservationService {
     private ReservationRepository reservationRepository;
     private TariffRepository tariffRepository;
@@ -66,6 +68,7 @@ public class ReservationService {
             }
             semaphore.release();
         } catch (InterruptedException e) {
+            log.error(e.getMessage());
             response = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             throw new RuntimeException();
         }
@@ -102,6 +105,7 @@ public class ReservationService {
                     Time.valueOf(LocalTime.parse(arrayStr[5], secondFormatter))
             );
         } catch (NumberFormatException e) {
+            log.error(e.getMessage());
             e.printStackTrace();
         }
         return reservationReturn;
@@ -125,7 +129,7 @@ public class ReservationService {
     private void addNewTask(Date endData, Time endTime, String placeId, Integer resId){
         LocalDateTime endDateTime = LocalDateTime.of(endData.toLocalDate(),endTime.toLocalTime());
         long delay  = Duration.between(LocalDateTime.now(),endDateTime).abs().toMillis();
-        System.out.println(delay);
+        log.info("Started new timer with duration: " + delay + " ms");
         MyTimerTask task = new MyTimerTask();
         task.setPlaceId(placeId);
         Timer timer = new Timer();
@@ -231,7 +235,7 @@ public class ReservationService {
     }
 
     private double getCoast(Reservation reservation){
-            long qq = Duration.between(reservation.getEndTimeReser().toLocalTime(),reservation.getStartTimeReser().toLocalTime()).abs().toHours()+1;
+            long intervalInHours = Duration.between(reservation.getEndTimeReser().toLocalTime(),reservation.getStartTimeReser().toLocalTime()).abs().toHours()+1;
             Gson gson = new Gson();
             double coast=0.0;
             if(tariff.isPresent()){
@@ -247,7 +251,7 @@ public class ReservationService {
                     position++;
                 }
                 List<Integer> prices =  hours.getPrices().values().stream().collect(Collectors.toList());
-                for(int i=position;i<position+qq;i++){
+                for(int i=position;i<position+intervalInHours;i++){
                     coast += prices.get(i);
                 }
             }

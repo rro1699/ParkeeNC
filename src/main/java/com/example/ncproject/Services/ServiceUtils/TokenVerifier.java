@@ -8,11 +8,13 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 
+@Slf4j
 public class TokenVerifier {
 
     private String CLIENT_ID;
@@ -28,8 +30,10 @@ public class TokenVerifier {
             transport = GoogleNetHttpTransport.newTrustedTransport();
             jsonFactory = GsonFactory.getDefaultInstance();
         } catch (GeneralSecurityException e) {
+            log.error(e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
+            log.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -46,8 +50,9 @@ public class TokenVerifier {
                 return new User(userId,givenName,familyName,email);
             }
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         } catch (IOException e) {
+            log.error(e.getMessage());
             e.printStackTrace();
         }
         return null;
